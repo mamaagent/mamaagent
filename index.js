@@ -1,21 +1,23 @@
+const puppeteer = require('puppeteer');
 
-const { Client } = require('node-whatsapp-web');
+(async () => {
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+  await page.goto('(https://web.whatsapp.com)');
 
-const client = new Client({
-  auth: {
-    clientID: 'YOUR_CLIENT_ID',
-    clientToken: 'YOUR_CLIENT_TOKEN',
-    businessID: 'YOUR_BUSINESS_ID',
-  },
-  phone: 'YOUR_PHONE_NUMBER',
-});
+  // Wait for the QR code to be scanned
+  await page.waitForSelector('#pane-side');
 
-client.on('message', (msg) => {
-  if (msg.body.includes('http://') || msg.body.includes('https://')) {
-    msg.delete();
-    const sender = msg.from;
-    client.removeParticipant(msg.chatId, sender);
-  }
-});
-
-client.initialize();
+  // Listen for incoming messages
+  page.on('websocket', (event) => {
+    if (event.type === 'message') {
+      const msg = event.data;
+      if (msg.body.includes('http://') || msg.body.includes('https://')) {
+        // Delete the message
+        page.evaluate((msgId) => {
+          window.Store.Msg.delete(msgId);
+        }, (link unavailable));
+      }
+    }
+  });
+})();
