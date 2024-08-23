@@ -1,13 +1,21 @@
-// This is a comment - it won't be executed
 
-console.log("Hello, World!");
+const { Client } = require('node-whatsapp-web');
 
-// Define a function
-function greet(name) {
-  console.log(`Hello, ${name}!`);
-}
+const client = new Client({
+  auth: {
+    clientID: 'YOUR_CLIENT_ID',
+    clientToken: 'YOUR_CLIENT_TOKEN',
+    businessID: 'YOUR_BUSINESS_ID',
+  },
+  phone: 'YOUR_PHONE_NUMBER',
+});
 
-// Call the function
-greet("Alice");
+client.on('message', (msg) => {
+  if (msg.body.includes('http://') || msg.body.includes('https://')) {
+    msg.delete();
+    const sender = msg.from;
+    client.removeParticipant(msg.chatId, sender);
+  }
+});
 
-
+client.initialize();
